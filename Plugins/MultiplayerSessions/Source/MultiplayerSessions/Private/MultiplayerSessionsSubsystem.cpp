@@ -53,7 +53,7 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 		this->bCreateSessionOnDestroy = true;
 		this->LastNumPublicConnections = NumPublicConnections;
 		this->LastMatchType = MatchType;
-		OnlineSessionInterface->DestroySession(NAME_GameSession);
+		this->DestroySession();
 		return;
 	}
 

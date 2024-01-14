@@ -1,9 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Blaster/Public/Character/BlasterCharacter.h"
+#include "Character/BlasterCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
@@ -25,6 +26,11 @@ ABlasterCharacter::ABlasterCharacter()
 	this->FollowCamera->SetupAttachment(this->CameraBoom, USpringArmComponent::SocketName);
 	// FollowCamera跟着弹簧臂走，所以不需要随着Pawn的旋转而旋转
 	this->FollowCamera->bUsePawnControlRotation = false;
+
+	// Character不随着Controller旋转, 瞄准时再跟着旋转
+	this->bUseControllerRotationYaw = false;
+	// 平时跟着移动方向去旋转
+	this->GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
 // Called when the game starts or when spawned

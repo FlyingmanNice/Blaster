@@ -90,6 +90,14 @@ void UMenuWidget::OnCreateSession(bool bWasSuccessful)
 		if (World)
 		{
 			World->ServerTravel(this->PathToLobby);
+
+			// Travel之后就Focus在游戏上
+			if (APlayerController* PlayerController = World->GetFirstPlayerController())
+			{
+				FInputModeGameOnly InputModeData;
+				PlayerController->SetInputMode(InputModeData);
+				PlayerController->SetShowMouseCursor(false);
+			}
 		}
 	}
 	else
