@@ -3,10 +3,12 @@
 
 #include "Character/BlasterCharacter.h"
 
+#include "Blaster/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
@@ -37,10 +39,29 @@ ABlasterCharacter::ABlasterCharacter()
 	this->OverheadWidget->SetupAttachment(this->RootComponent);
 }
 
+void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//DOREPLIFETIME直接将变量Replicate给所有Client
+	//DOREPLIFETIME(ABlasterCharacter, OverlappedWeapon)
+
+	//DOREPLIFETIME_CONDITION则只会Replicate给符合条件的Client
+	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappedWeapon, ELifetimeCondition::COND_OwnerOnly)
+}
+
 // Called when the game starts or when spawned
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+// Called every frame
+void ABlasterCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	
 }
 
 // Called to bind functionality to input
@@ -93,12 +114,40 @@ void ABlasterCharacter::LookUp(float Value)
 	this->AddControllerPitchInput(Value);
 }
 
-// Called every frame
-void ABlasterCharacter::Tick(float DeltaTime)
+void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
-	Super::Tick(DeltaTime);
+	if(OverlappedWeapon)
+	{
+		OverlappedWeapon->ShowPickupWidget(true);
+	}
 
+	if(LastWeapon)
+	{
+		LastWeapon->ShowPickupWidget(false);
+	}
 }
+
+void ABlasterCharacter::SetOverlappedWeapon(AWeapon* Weapon)
+{
+	// 因为只有Server才会绑定Overlap方法，所以能进来的肯定是在Server
+	// 所以再判断是不是本地在操作就可以知道是不是Server的本地玩家Overlap了
+	if(IsLocallyControlled())
+	{
+		if(OverlappedWeapon)
+		{
+			OverlappedWeapon->ShowPickupWidget(false);
+		}
+
+		if(Weapon)
+		{
+			Weapon->ShowPickupWidget(true);
+		}
+	}
+
+	this->OverlappedWeapon = Weapon;
+}
+
+
 
 
 

@@ -16,6 +16,8 @@ public:
 	ABlasterCharacter();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// 继承自AActor，用于定义需要Replicate的Properties
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -35,7 +37,19 @@ private:
 	//EditAnywhere是指在Instance也可以Edit
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverheadWidget; 
-public:	
-	
 
+	// GetLifetimeReplicatedProps和标签定义了之后，只要Server里这个变量有变化，就会Replicate给所有的Client
+	// UPROPERTY(Replicated)
+	// class AWeapon* OverlappedWeapon;
+	
+	// 定义了变量发生Replicate时的回调（Client的回调）
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	class AWeapon* OverlappedWeapon;
+
+	// 回调只能有一个参数，是修改前的变量
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	
+public:
+	void SetOverlappedWeapon(AWeapon* Weapon);
 };
