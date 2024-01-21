@@ -3,6 +3,7 @@
 
 #include "Character/BlasterCharacter.h"
 
+#include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/WidgetComponent.h"
@@ -37,6 +38,9 @@ ABlasterCharacter::ABlasterCharacter()
 
 	this->OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	this->OverheadWidget->SetupAttachment(this->RootComponent);
+
+	this->CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	this->CombatComponent->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -60,8 +64,6 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	
 }
 
 // Called to bind functionality to input
@@ -75,6 +77,17 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &ThisClass::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::LookUp);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ThisClass::EquipButtonPressed);
+}
+
+void ABlasterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if(this->CombatComponent)
+	{
+		this->CombatComponent->OwnerCharacter = this;
+	}
 }
 
 void ABlasterCharacter::MoveForward(float Value)
@@ -114,6 +127,22 @@ void ABlasterCharacter::LookUp(float Value)
 	this->AddControllerPitchInput(Value);
 }
 
+void ABlasterCharacter::EquipButtonPressed()
+{
+	// 只有Server可以装备武器
+	if(this->CombatComponent)
+	{
+		if(this->HasAuthority())
+		{
+			this->CombatComponent->EquipWeapon(this->OverlappedWeapon);
+		}
+		else
+		{
+			this->ServerEquipButtonPressed();
+		}
+	}
+}
+
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if(OverlappedWeapon)
@@ -124,6 +153,15 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	if(LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
+	}
+}
+
+// RPC的Funciton定义需要加后缀_Implementation，因为得由Server调用而不是普通的Fucntion直接调用
+void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if(this->CombatComponent)
+	{
+		this->CombatComponent->EquipWeapon(this->OverlappedWeapon);
 	}
 }
 
@@ -145,6 +183,11 @@ void ABlasterCharacter::SetOverlappedWeapon(AWeapon* Weapon)
 	}
 
 	this->OverlappedWeapon = Weapon;
+}
+
+bool ABlasterCharacter::IsWeaponEquipped()
+{
+	return this->CombatComponent && this->CombatComponent->EquippedWeapon != nullptr;
 }
 
 

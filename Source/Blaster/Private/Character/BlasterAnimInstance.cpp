@@ -38,4 +38,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	this->bIsInAir = CharacterMovementComponent->IsFalling();
 	// 是否在加速
 	this->bIsAccelerating = CharacterMovementComponent->GetCurrentAcceleration().Size() > 0;
+	// 是否装备了武器
+	this->bWeaponEquipped = this->BlasterCharacter->IsWeaponEquipped();
 }

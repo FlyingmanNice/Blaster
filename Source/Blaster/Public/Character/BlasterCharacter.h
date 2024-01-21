@@ -18,7 +18,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// 继承自AActor，用于定义需要Replicate的Properties
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+	virtual void PostInitializeComponents() override; 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -27,6 +27,8 @@ protected:
 	void MoveRight(float Value);
 	void Turn(float Value);
 	void LookUp(float Value);
+	void EquipButtonPressed();
+	
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
@@ -49,7 +51,16 @@ private:
 	// 回调只能有一个参数，是修改前的变量
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
+	UPROPERTY(VisibleAnywhere)
+	class UCombatComponent* CombatComponent;
+
+	// Server表示这是个RPC Function
+	// Reliable表示这是个可靠的RPC，如果Server没有回应会一直发，所以避免在Tick里使用
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();
 	
 public:
 	void SetOverlappedWeapon(AWeapon* Weapon);
+	bool IsWeaponEquipped();
 };
