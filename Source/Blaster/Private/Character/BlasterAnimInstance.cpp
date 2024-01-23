@@ -40,4 +40,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	this->bIsAccelerating = CharacterMovementComponent->GetCurrentAcceleration().Size() > 0;
 	// 是否装备了武器
 	this->bWeaponEquipped = this->BlasterCharacter->IsWeaponEquipped();
+	// 是否在蹲着
+	this->bIsCrouched = this->BlasterCharacter->bIsCrouched;
+	// 是否在瞄准
+	this->bAiming = this->BlasterCharacter->IsAiming();
 }

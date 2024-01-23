@@ -21,12 +21,28 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bAiming);
 }
 
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void UCombatComponent::SetAiming(bool bIsAiming)
+{
+	this->bAiming = bIsAiming;
+	// if(!this->OwnerCharacter->HasAuthority())
+	// {
+	// 在Client里执行RPC，会自动在Server上执行
+		this->ServerSetAiming(bIsAiming);
+	//}
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
+{
+	this->bAiming = bIsAiming;
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
