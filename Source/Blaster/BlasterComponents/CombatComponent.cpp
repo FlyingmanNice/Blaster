@@ -7,6 +7,7 @@
 #include "Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -40,6 +41,16 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	//}
 }
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if(this->EquippedWeapon && this->OwnerCharacter)
+	{
+		//装备武器时不能跟着移动旋转, 而是根据瞄准方向旋转
+		this->OwnerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+		this->OwnerCharacter->bUseControllerRotationYaw = true;
+	}
+}
+
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 {
 	this->bAiming = bIsAiming;
@@ -66,5 +77,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 
 	this->EquippedWeapon->SetOwner(this->OwnerCharacter);
+	this->OwnerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	this->OwnerCharacter->bUseControllerRotationYaw = true;
 }
 
